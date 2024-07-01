@@ -1,0 +1,49 @@
+import numpy as np
+import pandas as pd
+df3=pd.read_csv('IRIS (1).csv')
+x=df3.drop('species',axis=1)
+Y=df3['species']
+import sklearn.model_selection as ms
+x_train,x_test,Y_train,Y_test=ms.train_test_split(x,Y,test_size=0.2)
+import sklearn.neighbors as nb
+knn1=nb.KNeighborsClassifier(n_neighbors=6)
+knn1.fit(x_train,Y_train)
+Y_pred2=knn1.predict(x_test)
+from sklearn.metrics import accuracy_score
+acc2=accuracy_score(Y_test,Y_pred2)
+print('Old Test Accuracy:',acc2*100)
+Y_pred3=knn1.predict(x_train)
+from sklearn.metrics import accuracy_score
+acc4=accuracy_score(Y_train,Y_pred3)
+print('Old Train Accuracy:',acc4*100)
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Flatten, Dense
+from tensorflow.keras.optimizers import Adam
+from sklearn.preprocessing import LabelEncoder
+from tensorflow.keras.metrics import Precision, Recall
+from tensorflow.keras.callbacks import EarlyStopping
+label_encoder = LabelEncoder()
+Y_train_encoded = label_encoder.fit_transform(Y_train)
+Y_test_encoded = label_encoder.transform(Y_test)
+model = tf.keras.Sequential([
+  tf.keras.layers.Dense(10, activation='relu', input_shape=(4,)),
+  tf.keras.layers.Dense(3, activation='softmax')])
+early_stopping = EarlyStopping(monitor='val_loss', patience=5)
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+history=model.fit(x_train, Y_train_encoded, epochs=180, batch_size=32,validation_split=0.2,callbacks=[early_stopping])
+training_accuracy = history.history['accuracy']
+validation_accuracy = history.history['val_accuracy']
+print('Training accuracy:',training_accuracy[-1]*100)
+print('Validation accuracy:',validation_accuracy[-1]*100)
+
+train_loss = history.history['loss']
+val_loss = history.history['val_loss']
+test_loss, test_acc = model.evaluate(x_test,Y_test_encoded)
+print('New Test accuracy:', test_acc*100)
+
+df4={'sepal_length':2.0,'sepal_width':4.6,'petal_length':1.8,'petal_width':0.5}
+df4=pd.DataFrame(df4,index=[0])
+prediction=knn1.predict(df4)
+print(prediction)
